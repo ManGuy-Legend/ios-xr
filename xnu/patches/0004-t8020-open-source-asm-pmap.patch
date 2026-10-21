@@ -1,0 +1,183 @@
+T8020: compile ARM64 assembly and pmap from open source instead of KDK
+
+Apple's Mac SoC configs (T6000, T8101, ...) link the ARM64 assembly and
+pmap object files from the KDK's closed lib<SOC>.os.<CONFIG>.a archive.
+No KDK exists for T8020 (iPhone SoC), so enable nos_arm_asm and
+nos_arm_pmap to compile them from the open-source XNU tree instead.
+
+The closed-source files that nos_arm_asm references (amcc_rorgn_*,
+tunables, machine_routines_apple) and that nos_arm_pmap includes
+(sart.h, uat.h) are stubbed: KTRR lockdown, CPU tunables, SART/UAT
+IOMMU, and hardware performance counters are all disabled. The kernel
+boots and runs but does not lock down its text pages or expose PMU
+counters.
+
+diff --git a/config/MASTER.arm64.MacOSX b/config/MASTER.arm64.MacOSX
+--- a/config/MASTER.arm64.MacOSX
++++ b/config/MASTER.arm64.MacOSX
+@@ -16,7 +16,12 @@
+ #  Standard Apple OS Configurations:
+ #  -------- ----- -- ---------------
+ #
+-#  KERNEL_BASE =    [ arm64 config_pmap_ppl medium msgb_large config_requires_u32_munging config_delay_idle_sleep config_proc_udata_storage config_uexc config_darkboot ARM_EXTRAS_BASE ]
++#if SOC_CONFIG_t8020
++#  T8020_OPEN_SRC = [ nos_arm_asm nos_arm_pmap ]
++#else
++#  T8020_OPEN_SRC = [ ]
++#endif
++#  KERNEL_BASE =    [ arm64 config_pmap_ppl medium msgb_large config_requires_u32_munging config_delay_idle_sleep config_proc_udata_storage config_uexc config_darkboot ARM_EXTRAS_BASE T8020_OPEN_SRC ]
+ #  KERNEL_RELEASE = [ KERNEL_BASE ]
+ #  KERNEL_DEV =     [ KERNEL_BASE development mach_assert config_xnupost proc_ref_debug config_proc_resource_limits config_ext_paniclog ]
+ #  KERNEL_DEBUG =   [ KERNEL_BASE debug mach_assert config_xnupost config_waitq_stats config_workloop_debug config_proc_resource_limits config_ext_paniclog ]
+diff --git a/osfmk/arm64/amcc_rorgn_common.c b/osfmk/arm64/amcc_rorgn_common.c
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/amcc_rorgn_common.c
+@@ -0,0 +1,47 @@
++/*
++ * T8020 stub: the real amcc_rorgn_common.c ships only in Apple's closed
++ * per-SoC KDK library. It implements KTRR/CTRR kernel text read-only
++ * region lockdown via the AMCC (Apple Memory Controller). With these
++ * stubs, KTRR lockdown is disabled -- the kernel boots and runs but
++ * does not lock down its text pages. Fine for development.
++ */
++
++#include <mach/vm_types.h>
++#include <stdbool.h>
++
++#if defined(KERNEL_INTEGRITY_KTRR) || defined(KERNEL_INTEGRITY_CTRR)
++
++#include <libkern/section_keywords.h>
++
++vm_offset_t rorgn_begin = 0;
++vm_offset_t rorgn_end = 0;
++vm_offset_t ctrr_begin = 0;
++vm_offset_t ctrr_end = 0;
++
++#if CONFIG_CSR_FROM_DT
++bool csr_unsafe_kernel_text = false;
++#endif
++
++void
++rorgn_stash_range(void)
++{
++}
++
++void
++rorgn_lockdown(void)
++{
++}
++
++bool
++rorgn_contains(vm_offset_t addr __unused, vm_size_t size __unused,
++    bool defval)
++{
++	return defval;
++}
++
++void
++rorgn_validate_core(void)
++{
++}
++
++#endif /* KERNEL_INTEGRITY_KTRR || KERNEL_INTEGRITY_CTRR */
+diff --git a/osfmk/arm64/amcc_rorgn_ppl.c b/osfmk/arm64/amcc_rorgn_ppl.c
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/amcc_rorgn_ppl.c
+@@ -0,0 +1,7 @@
++/*
++ * T8020 stub: amcc_rorgn_ppl.c (PPL-side AMCC lockdown) ships only in
++ * Apple's closed per-SoC library. No KTRR/CTRR lockdown on this build.
++ */
++#include <stdint.h>
++
++static const uint8_t t8020_no_amcc_ppl __attribute__((unused)) = 0;
+diff --git a/osfmk/arm64/amcc_rorgn_ppl_amcc.c b/osfmk/arm64/amcc_rorgn_ppl_amcc.c
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/amcc_rorgn_ppl_amcc.c
+@@ -0,0 +1,7 @@
++/*
++ * T8020 stub: amcc_rorgn_ppl_amcc.c (AMCC-variant PPL lockdown) ships
++ * only in Apple's closed per-SoC library.
++ */
++#include <stdint.h>
++
++static const uint8_t t8020_no_amcc_ppl_amcc __attribute__((unused)) = 0;
+diff --git a/osfmk/arm64/amcc_rorgn_ppl_ctrr3.c b/osfmk/arm64/amcc_rorgn_ppl_ctrr3.c
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/amcc_rorgn_ppl_ctrr3.c
+@@ -0,0 +1,7 @@
++/*
++ * T8020 stub: amcc_rorgn_ppl_ctrr3.c (CTRR v3 lockdown) ships only
++ * in Apple's closed per-SoC library. Not applicable to A12 (KTRR).
++ */
++#include <stdint.h>
++
++static const uint8_t t8020_no_ctrr3 __attribute__((unused)) = 0;
+diff --git a/osfmk/arm64/tunables/tunables.s b/osfmk/arm64/tunables/tunables.s
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/tunables/tunables.s
+@@ -0,0 +1,8 @@
++/*
++ * T8020 stub: Apple's per-SoC CPU tunables (implementation-defined
++ * HID/ACC register settings applied by start.s) are not in the open
++ * source drop. Without them the CPU runs on reset defaults, which is
++ * correct enough for boot and early development.
++ */
++.macro APPLY_TUNABLES midr, tmp1, tmp2
++.endmacro
+diff --git a/osfmk/arm64/ppl/sart.h b/osfmk/arm64/ppl/sart.h
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/ppl/sart.h
+@@ -0,0 +1,13 @@
++/*
++ * T8020 stub: Apple's SART (System Address Region Table -- NVMe/ANS
++ * IOMMU) header is not in the open source drop. Bootstrap is a no-op;
++ * ANS storage access will need the real kext at runtime.
++ */
++#ifndef _ARM64_PPL_SART_H_
++#define _ARM64_PPL_SART_H_
++
++static inline void
++sart_bootstrap(void)
++{
++}
++
++#endif /* _ARM64_PPL_SART_H_ */
+diff --git a/osfmk/arm64/ppl/uat.h b/osfmk/arm64/ppl/uat.h
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/ppl/uat.h
+@@ -0,0 +1,13 @@
++/*
++ * T8020 stub: Apple's UAT (Unified Address Translator -- GPU page
++ * table manager) header is not in the open source drop. Bootstrap
++ * is a no-op; GPU access will need the real kext at runtime.
++ */
++#ifndef _ARM64_PPL_UAT_H_
++#define _ARM64_PPL_UAT_H_
++
++static inline void
++uat_bootstrap(void)
++{
++}
++
++#endif /* _ARM64_PPL_UAT_H_ */
+diff --git a/osfmk/arm64/machine_routines_apple.c b/osfmk/arm64/machine_routines_apple.c
+new file mode 100644
+--- /dev/null
++++ b/osfmk/arm64/machine_routines_apple.c
+@@ -0,0 +1,8 @@
++/*
++ * T8020 stub: machine_routines_apple.c provides Apple Silicon-specific
++ * machine routine implementations. The KDK normally supplies it. With
++ * nos_arm_asm the build system expects the file to exist; the generic
++ * implementations in machine_routines.c suffice for boot.
++ */
++
++#include <arm/machine_routines.h>

@@ -1,0 +1,55 @@
+T8020: fix compilation errors when nos_arm_pmap compiles pmap sources
+
+With nos_arm_asm and nos_arm_pmap enabled (patch 0004), pmap.c and
+pmap_misc.c compile from open source for the first time. Two fixes:
+
+1) ptep_get_iommu() is closed-source (DART IOMMU helper, ships in the
+   KDK library, not in the open tree). It is called only inside two
+   panic() messages in pmap_page_protect_options_with_flush_range().
+   Replace with the raw PTE pointer -- these are crash-diagnostic
+   strings, so losing the IOMMU decode is harmless.
+
+2) pmap_pending_preemption() is declared extern in pmap.h for
+   SCHED_HYGIENE_DEBUG DEVELOPMENT builds but never defined in the
+   open tree. Add the trivial implementation that calls the inline
+   _pmap_pending_preemption_real() already provided by pmap.h.
+
+diff --git a/osfmk/arm/pmap/pmap.c b/osfmk/arm/pmap/pmap.c
+--- a/osfmk/arm/pmap/pmap.c
++++ b/osfmk/arm/pmap/pmap.c
+@@ -3500,14 +3500,14 @@
+ #ifdef PVH_FLAG_IOMMU
+ 		if (pvh_ptep_is_iommu(pte_p)) {
+ #if XNU_MONITOR
+ 			if (__improbable(pvh_flags & PVH_FLAG_LOCKDOWN_MASK)) {
+-				panic("pmap_page_protect: ppnum 0x%x locked down, cannot be owned by iommu %p, pve_p=%p",
+-				    ppnum, ptep_get_iommu(pte_p), pve_p);
++				panic("pmap_page_protect: ppnum 0x%x locked down, cannot be owned by iommu pte %p, pve_p=%p",
++				    ppnum, pte_p, pve_p);
+ 			}
+ #endif
+ 			if (remove && (options & PMAP_OPTIONS_COMPRESSOR)) {
+-				panic("pmap_page_protect: attempt to compress ppnum 0x%x owned by iommu %p, pve_p=%p",
+-				    ppnum, ptep_get_iommu(pte_p), pve_p);
++				panic("pmap_page_protect: attempt to compress ppnum 0x%x owned by iommu pte %p, pve_p=%p",
++				    ppnum, pte_p, pve_p);
+ 			}
+ 			goto protect_skip_pve_pass1;
+diff --git a/osfmk/arm/pmap/pmap_misc.c b/osfmk/arm/pmap/pmap_misc.c
+--- a/osfmk/arm/pmap/pmap_misc.c
++++ b/osfmk/arm/pmap/pmap_misc.c
+@@ -44,3 +44,14 @@
+ 	pmap_interrupts_restore(istate);
+ #endif /* SCHED_HYGIENE_DEBUG */
+ }
++
++#if SCHED_HYGIENE_DEBUG && (DEBUG || DEVELOPMENT)
++/*
++ * Instrumented wrapper called from pmap.c when SCHED_HYGIENE_DEBUG is on.
++ */
++bool
++pmap_pending_preemption(void)
++{
++	return _pmap_pending_preemption_real();
++}
++#endif /* SCHED_HYGIENE_DEBUG && (DEBUG || DEVELOPMENT) */
