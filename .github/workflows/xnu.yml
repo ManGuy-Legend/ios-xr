@@ -3,6 +3,9 @@ name: Build XNU (T8020)
 on:
   workflow_dispatch:
     inputs:
+      macos_version:
+        description: "macOS version whose xnu to build (15.0 = xnu-11215, iOS 26 era)"
+        default: "15.0"
       kernel_config:
         description: RELEASE / DEVELOPMENT / DEBUG
         default: DEVELOPMENT
@@ -24,6 +27,7 @@ concurrency:
 
 env:
   DXB_REPO: https://github.com/blacktop/darwin-xnu-build
+  MACOS_VERSION: ${{ inputs.macos_version || '15.0' }}
   KERNEL_CONFIG: ${{ inputs.kernel_config || 'DEVELOPMENT' }}
   MACHINE_CONFIG: ${{ inputs.machine_config || 'T8020' }}
   CCACHE_DIR: ${{ github.workspace }}/.ccache
