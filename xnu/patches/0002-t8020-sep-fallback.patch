@@ -1,0 +1,95 @@
+diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
+--- a/bsd/kern/kern_trustcache.c
++++ b/bsd/kern/kern_trustcache.c
+@@ -286,6 +286,25 @@ SECURITY_READ_ONLY_LATE(TrustCacheMutableRuntime_t*) trust_cache_mut_rt = &ppl_t
+ void
+ trust_cache_runtime_init(void)
+ {
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	/*
++	 * T8020 SEP fallback: XR's SEP runs iOS 18-era firmware. If the
++	 * Image4 or AMFI kext fails to register its interface (because
++	 * SEP communication failed during kext start), panic here would
++	 * be fatal. Instead, leave trust_cache_rt NULL -- all trust cache
++	 * operations will return KERN_NOT_SUPPORTED, and the cs_flags
++	 * fallback in ubc_cs_blob_add (patch 0003) handles binary
++	 * validation without trust caches.
++	 */
++	if (img4if == NULL || amfi == NULL) {
++		trust_cache_rt = NULL;
++		trust_cache_mut_rt = NULL;
++		printf("T8020: trust cache runtime unavailable "
++		    "(img4=%p amfi=%p) -- SEP fallback active\n",
++		    img4if, amfi);
++		return;
++	}
++#endif
+ 	bool allow_second_static_cache = false;
+ 	bool allow_engineering_caches = false;
+
+@@ -691,6 +710,12 @@ check_trust_cache_runtime_for_uuid(
+ 		return KERN_INVALID_ARGUMENT;
+ 	}
+
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (trust_cache_rt == NULL) {
++		return KERN_NOT_FOUND;
++	}
++#endif
++
+ #if CONFIG_SPTM
+ 	ret = txm_check_trust_cache_runtime_for_uuid(check_uuid);
+ #elif PMAP_CS_PPL_MONITOR
+@@ -856,6 +881,13 @@ load_trust_cache_with_type(
+ 		return KERN_DENIED;
+ 	}
+
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (trust_cache_rt == NULL) {
++		printf("T8020: trust cache load skipped (SEP fallback)\n");
++		return KERN_NOT_SUPPORTED;
++	}
++#endif
++
+ #if CONFIG_SPTM
+ 	ret = txm_load_trust_cache(
+ 		type,
+@@ -929,6 +961,12 @@ query_trust_cache(
+ 		return KERN_INVALID_ARGUMENT;
+ 	}
+
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (trust_cache_rt == NULL) {
++		return KERN_NOT_FOUND;
++	}
++#endif
++
+ #if CONFIG_SPTM
+ 	ret = txm_query_trust_cache(query_type, cdhash, query_token);
+ #elif PMAP_CS_PPL_MONITOR
+diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
+--- a/bsd/kern/ubc_subr.c
++++ b/bsd/kern/ubc_subr.c
+@@ -4856,6 +4856,21 @@ ubc_cs_blob_add(
+ 	}
+ #endif
+
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	/*
++	 * T8020 SEP fallback: without a functioning trust cache runtime,
++	 * the AMFI MAC hook cannot mark binaries as platform binaries via
++	 * the normal trust cache cdhash lookup path. Mark every properly
++	 * signed binary on the root filesystem as CS_PLATFORM_BINARY so
++	 * the iOS 26 userland can exec(). This is the same policy ios-sweet
++	 * uses for Snapdragon, adapted for real Apple hardware where the
++	 * binaries are genuinely Apple-signed (just not trust-cache-verified).
++	 */
++	if ((tmp_blob.csb_flags & CS_VALID) && vnode_mount(vp) != NULL &&
++	    (vfs_flags(vnode_mount(vp)) & MNT_ROOTFS)) {
++		tmp_blob.csb_flags |= CS_PLATFORM_BINARY;
++	}
++#endif
++
+ 	if (tmp_blob.csb_flags & CS_PLATFORM_BINARY) {
+ 		if (cs_debug > 1) {
+ 			printf("%.200s loaded from a platform binary: "

@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2019 Apple Inc. All rights reserved.
+ *
+ * T8020 (A12 Bionic, Vortex/Tempest). Not shipped in any public XNU
+ * tree in any year checked (see ../../research/xnu-findings.md item 2)
+ * -- written for this project, modeled directly on H13.h's structure
+ * since APPLEFIRESTORM/H13 is the closest-documented sibling pattern,
+ * but with every flag re-derived for A12 specifically rather than
+ * copied. See ../../research/machine-config-draft.md for the
+ * per-flag justification and confidence level of each line below.
+ *
+ * @APPLE_OSREFERENCE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. The rights granted to you under the License
+ * may not be used to create, or enable the creation or redistribution of,
+ * unlawful or unlicensed copies of an Apple operating system, or to
+ * circumvent, violate, or enable the circumvention or violation of, any
+ * terms of an Apple operating system software license agreement.
+ *
+ * Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
+ */
+
+#ifndef _PEXPERT_ARM64_H12_H
+#define _PEXPERT_ARM64_H12_H
+
+#define APPLEVORTEX              /* turns on the existing proc_reg.h MMU_CLINE hook (already live, unused) */
+
+#define NO_MONITOR              1 /* no EL3 for this CPU -- ever (true for every Apple AP core) */
+#define HAS_CLUSTER             1 /* 2 Vortex (perf) + 4 Tempest (eff), separate clusters -- confirmed against XR's real ADT (apple,vortex / apple,tempest), see ../../research/devicetree-xr.md */
+#define HAS_IPI                  1 /* every multi-core Apple AP SoC has this; XR's ADT has a real `aic` node */
+#define HAS_FAST_CNTVCT          1 /* timebase register read fast-path -- same architectural generation as H13, unverified against a datasheet but low risk if wrong (perf-only) */
+
+#define CPU_HAS_APPLE_PAC        1 /* A12 is the FIRST Apple PAC/arm64e chip -- public, well-documented fact */
+#define __ARM_PAN_AVAILABLE__    1 /* ARMv8.1 PAN, below A12's baseline */
+
+#define HAS_KTRR                 1 /* NOT HAS_CTRR -- CTRR is H13+ (A14-and-newer) only; KTRR is the
+                                     * explicit predecessor fallback still wired in current XNU's
+                                     * apple_arm64_common.h (HAS_CTRR3 -> HAS_CTRR -> HAS_KTRR -> MONITOR),
+                                     * and matches public jailbreak-community terminology for A10-A12. */
+
+/* HAS_ARM_FEAT_SSBS2 intentionally left undefined. Not a hardware-presence
+ * question -- userland SSBS exposure is runtime-probed from ID_AA64PFR1_EL1
+ * unconditionally in osfmk/arm/commpage/commpage.c regardless of this flag.
+ * This macro only picks the kernel's own default SCTLR.DSSBS bit; leaving
+ * it undefined is the safe choice either way. */
+
+/* HAS_E0PD, HAS_SPECRES intentionally NOT defined -- both ARMv8.5-era,
+ * A12's baseline predates them. Defining either risks a trap on first use
+ * of a register field the hardware doesn't implement. */
+
+/* HAS_BP_RET, HAS_RETENTION_STATE, HAS_UCNORMAL_MEM, HAS_NEX_PG,
+ * HAS_CONTINUOUS_HWCLOCK, HAS_ACNTVCT, HAS_GUARDED_IO_FILTER: genuinely
+ * unverified power-management micro-features. No public datasheet or
+ * structural XNU evidence found either way (unlike KTRR/CTRR and SSBS
+ * above, which had real evidence to resolve against). Left undefined
+ * rather than guessed -- getting one of these wrong risks undefined
+ * behavior around a power/clock-gating path, which is a correctness risk,
+ * not just a missing optimization. Needs real boot testing to resolve,
+ * once a legitimate exploit primitive exists to get code running at all. */
+
+#define __ARM_AMP__                             1 /* matches HAS_CLUSTER above */
+#define __ARM_16K_PG__                          1 /* iOS has used 16K pages since A11; A12 continues this */
+#define __ARM_GLOBAL_SLEEP_BIT__                1
+#define __ARM_PAN_AVAILABLE__                   1
+
+/* Perf-counter topology (CPMU_PMC_COUNT, UNCORE_*, UPMU_*) intentionally
+ * NOT copied from H13.h -- those are Firestorm/Icestorm-specific counter
+ * counts, not Vortex/Tempest's. No public source for A12's actual PMU
+ * topology found. Omitting these entirely disables perf-counter-dependent
+ * kernel features for this config rather than silently using wrong counts;
+ * safe default, same reasoning as the power-management flags above. */
+
+#define ARM_PARAMETERIZED_PMAP               1
+#define __ARM_RANGE_TLBI__                   1
+
+#include <pexpert/arm64/vhe_disable.h>
+
+#include <pexpert/arm64/apple_arm64_common.h>
+
+#endif /* !_PEXPERT_ARM64_H12_H */

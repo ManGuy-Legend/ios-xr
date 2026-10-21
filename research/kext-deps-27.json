@@ -1,0 +1,450 @@
+{
+  "com.apple.AGXFirmwareKextG11PRTBuddy": {
+    "libs": {
+      "com.apple.AGXFirmwareKextRTBuddy64": "1.0",
+      "com.apple.driver.RTBuddy": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0"
+    },
+    "personalities": [
+      "Firmware"
+    ]
+  },
+  "com.apple.AGXFirmwareKextRTBuddy64": {
+    "libs": {
+      "com.apple.driver.RTBuddy": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0"
+    },
+    "personalities": []
+  },
+  "com.apple.AGXG11P": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleMobileFileIntegrity": "1.0.1",
+      "com.apple.driver.RTBuddy": "1.0.0",
+      "com.apple.iokit.CoreAnalyticsFamily": "1.0",
+      "com.apple.iokit.IOGPUFamily": "2.0.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.iokit.IOSurface": "52.6.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AGXG11P_A0",
+      "AGXG11P_B0"
+    ]
+  },
+  "com.apple.driver.AppleAD5860": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0",
+      "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+      "com.apple.driver.AppleEmbeddedAudio": "1.1.0",
+      "com.apple.driver.AppleIISController": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0"
+    },
+    "personalities": [
+      "AppleAD5860"
+    ]
+  },
+  "com.apple.driver.AppleBasebandD101": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedPCIE": "1.0.0",
+      "com.apple.driver.AppleOnboardSerial": "1.0",
+      "com.apple.iokit.CoreAnalyticsFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleBasebandD101"
+    ]
+  },
+  "com.apple.driver.AppleBasebandPCI": {
+    "libs": {
+      "com.apple.driver.AppleIPAppender": "1.0",
+      "com.apple.iokit.IONetworkingFamily": "1.4.3",
+      "com.apple.iokit.IOPCIFamily": "2.7.3",
+      "com.apple.iokit.IOSkywalkFamily": "1.0",
+      "com.apple.kpi.bsd": "9.0.0",
+      "com.apple.kpi.iokit": "9.0.0",
+      "com.apple.kpi.libkern": "9.0.0",
+      "com.apple.kpi.mach": "9.0.0",
+      "com.apple.kpi.private": "10.0.0d1",
+      "com.apple.kpi.unsupported": "9.0.0"
+    },
+    "personalities": [
+      "AppleBasebandPCI"
+    ]
+  },
+  "com.apple.driver.AppleBasebandPCIICEControl": {
+    "libs": {
+      "com.apple.driver.AppleBasebandPCI": "1.0.0",
+      "com.apple.kpi.bsd": "9.0.0",
+      "com.apple.kpi.iokit": "9.0.0",
+      "com.apple.kpi.libkern": "9.0.0",
+      "com.apple.kpi.mach": "9.0.0"
+    },
+    "personalities": [
+      "AppleBasebandPCIICEControl"
+    ]
+  },
+  "com.apple.driver.AppleBasebandPCIICEPDP": {
+    "libs": {
+      "com.apple.driver.AppleBasebandPCI": "1.0.0",
+      "com.apple.driver.AppleBasebandPCIICEControl": "1.0.0",
+      "com.apple.driver.AppleIPAppender": "1.0",
+      "com.apple.iokit.IONetworkingFamily": "1.4.3",
+      "com.apple.iokit.IOSkywalkFamily": "1.0",
+      "com.apple.kpi.bsd": "9.0.0",
+      "com.apple.kpi.iokit": "9.0.0",
+      "com.apple.kpi.libkern": "9.0.0",
+      "com.apple.kpi.mach": "9.0.0",
+      "com.apple.kpi.private": "10.0.0d1"
+    },
+    "personalities": [
+      "AppleBasebandPCIPDPADAMSkywalk",
+      "AppleBasebandPCIPDPManager"
+    ]
+  },
+  "com.apple.driver.AppleBluetooth": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleBluetooth"
+    ]
+  },
+  "com.apple.driver.AppleCS42L75Audio": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0",
+      "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+      "com.apple.driver.AppleEmbeddedAudio": "1.1.0",
+      "com.apple.driver.AppleEmbeddedAudioLibs": "1.0",
+      "com.apple.driver.AppleIISController": "1.0",
+      "com.apple.iokit.AppleARMIISAudio": "1.0",
+      "com.apple.iokit.IOAudio2Family": "1.0",
+      "com.apple.iokit.IOHIDFamily": "1.5",
+      "com.apple.iokit.IOMikeyBusFamily": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleCS42L75Audio"
+    ]
+  },
+  "com.apple.driver.AppleHapticsSupportCallan": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedAudioLibs": "1.0.0",
+      "com.apple.driver.AppleFirmwareUpdateKext": "1.0.0",
+      "com.apple.iokit.CoreAnalyticsFamily": "1.0",
+      "com.apple.iokit.IOHIDFamily": "1.4",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "11.0",
+      "com.apple.kpi.iokit": "11.0",
+      "com.apple.kpi.libkern": "11.0",
+      "com.apple.kpi.mach": "11.0",
+      "com.apple.kpi.private": "11.0",
+      "com.apple.kpi.unsupported": "11.0"
+    },
+    "personalities": [
+      "AppleHapticsSupport"
+    ]
+  },
+  "com.apple.driver.AppleIDBusCharger": {
+    "libs": {
+      "com.apple.driver.AppleARMPMU": "1.0.0",
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleC26Charger": "1.0.1",
+      "com.apple.driver.AppleEmbeddedTempSensor": "1.0.0",
+      "com.apple.iokit.IOAccessoryManager": "1.0.0",
+      "com.apple.iokit.IOHIDFamily": "1.4",
+      "com.apple.iokit.IOPortFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleAirPowerChargerIDBus",
+      "IOAccessoryIDBusC26"
+    ]
+  },
+  "com.apple.driver.AppleMCA2-T8020": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleAudioClockLibs": "1.0",
+      "com.apple.driver.AppleEmbeddedAudioLibs": "1.0",
+      "com.apple.driver.AppleIISController": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleLEAPController_T8020",
+      "AppleMCA2Cluster_T8020",
+      "AppleMCA2Switch_T8020"
+    ]
+  },
+  "com.apple.driver.AppleMobileDispH11P": {
+    "libs": {
+      "com.apple.AUC": "1.0",
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleM2ScalerCSCDriver": "1.0.0",
+      "com.apple.driver.AppleSEPManager": "1.0.0",
+      "com.apple.iokit.IOAVFamily": "1.0.0",
+      "com.apple.iokit.IOMobileGraphicsFamily": "1.0",
+      "com.apple.iokit.IOSurface": "52.0",
+      "com.apple.kpi.bsd": "8.4.1",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleADBE0-8970X"
+    ]
+  },
+  "com.apple.driver.AppleT8020": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleVortexErrorHandler": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020MemCacheController",
+      "AppleT8020PlatformErrorHandler",
+      "AppleT802xIO"
+    ]
+  },
+  "com.apple.driver.AppleT8020CLPCv3": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.ApplePMGR": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.iokit.IOSurface": "52.6.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020CLPCv3"
+    ]
+  },
+  "com.apple.driver.AppleT8020PCIe": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedPCIE": "1.0.0",
+      "com.apple.iokit.IOPCIFamily": "2.7",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "ApplePCIEHostBridge",
+      "AppleT8020PCIe"
+    ]
+  },
+  "com.apple.driver.AppleT8020PMGR": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.ApplePMGR": "1.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020PMGR"
+    ]
+  },
+  "com.apple.driver.AppleT8020PMPFirmware": {
+    "libs": {
+      "com.apple.driver.AppleA7IOP": "1.0",
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.IOSlaveProcessor": "1.0.0",
+      "com.apple.driver.RTBuddy": "1.0.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.private": "24.3.0"
+    },
+    "personalities": [
+      "AppleT8020PMPFirmware"
+    ]
+  },
+  "com.apple.driver.AppleT8020PPM": {
+    "libs": {
+      "com.apple.driver.ApplePMGR": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kec.Libm": "1.0.0",
+      "com.apple.kpi.bsd": "11.0",
+      "com.apple.kpi.iokit": "9.0.0",
+      "com.apple.kpi.libkern": "9.0.0",
+      "com.apple.kpi.mach": "9.0.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020PPM"
+    ]
+  },
+  "com.apple.driver.AppleT8020SOCTuner": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.ApplePMGR": "1.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020SOCTuner"
+    ]
+  },
+  "com.apple.driver.AppleT8020USB": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedUSB": "1.0.0",
+      "com.apple.driver.AppleS5L8960XUSB": "1.0.0",
+      "com.apple.driver.AppleT8011USB": "1.0.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "16.5.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleT8020USBPhy"
+    ]
+  },
+  "com.apple.driver.AppleUSBHSIC": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedUSB": "1.0.0",
+      "com.apple.driver.usb.AppleUSBCommon": "1.0",
+      "com.apple.driver.usb.AppleUSBEHCI": "1.2",
+      "com.apple.iokit.IOUSBHostFamily": "1.2",
+      "com.apple.kpi.bsd": "8.0.0b1",
+      "com.apple.kpi.iokit": "8.0.0b2",
+      "com.apple.kpi.libkern": "8.0.0b2",
+      "com.apple.kpi.mach": "8.0.0b2",
+      "com.apple.kpi.private": "16.5.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": []
+  },
+  "com.apple.driver.AppleVortexErrorHandler": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.iokit.IOReportFamily": "1.0",
+      "com.apple.kpi.bsd": "8.0",
+      "com.apple.kpi.iokit": "8.0",
+      "com.apple.kpi.libkern": "8.0",
+      "com.apple.kpi.mach": "8.0",
+      "com.apple.kpi.private": "8.0",
+      "com.apple.kpi.unsupported": "8.0"
+    },
+    "personalities": [
+      "AppleARM64ErrorHandler"
+    ]
+  },
+  "com.apple.driver.usb.AppleUSBEHCI": {
+    "libs": {
+      "com.apple.driver.usb.AppleUSBCommon": "1.0",
+      "com.apple.iokit.IOUSBHostFamily": "1.2",
+      "com.apple.kpi.bsd": "23.0.0",
+      "com.apple.kpi.iokit": "23.0.0",
+      "com.apple.kpi.libkern": "23.0.0",
+      "com.apple.kpi.mach": "23.0.0",
+      "com.apple.kpi.private": "23.0.0",
+      "com.apple.kpi.unsupported": "23.0.0"
+    },
+    "personalities": []
+  },
+  "com.apple.driver.usb.AppleUSBHostT8020": {
+    "libs": {
+      "com.apple.driver.AppleARMPlatform": "1.0.0",
+      "com.apple.driver.AppleEmbeddedUSB": "1.0",
+      "com.apple.driver.AppleEmbeddedUSBHost": "1.0",
+      "com.apple.driver.AppleUSBHSIC": "1.0",
+      "com.apple.driver.usb.AppleUSBCommon": "1.0",
+      "com.apple.driver.usb.AppleUSBEHCI": "1.2",
+      "com.apple.driver.usb.AppleUSBOHCI": "1.2",
+      "com.apple.iokit.IOUSBHostFamily": "1.2",
+      "com.apple.kpi.bsd": "15.0",
+      "com.apple.kpi.iokit": "15.0",
+      "com.apple.kpi.libkern": "15.0",
+      "com.apple.kpi.mach": "15.0",
+      "com.apple.kpi.private": "16.5.0",
+      "com.apple.kpi.unsupported": "15.0"
+    },
+    "personalities": [
+      "AppleT8002USBOHCI",
+      "AppleT8020USBEHCI"
+    ]
+  },
+  "com.apple.driver.usb.AppleUSBOHCI": {
+    "libs": {
+      "com.apple.driver.usb.AppleUSBCommon": "1.0",
+      "com.apple.driver.usb.AppleUSBEHCI": "1.2",
+      "com.apple.iokit.IOUSBHostFamily": "1.2",
+      "com.apple.kpi.bsd": "23.0.0",
+      "com.apple.kpi.iokit": "23.0.0",
+      "com.apple.kpi.libkern": "23.0.0",
+      "com.apple.kpi.mach": "23.0.0",
+      "com.apple.kpi.unsupported": "23.0.0"
+    },
+    "personalities": []
+  }
+}

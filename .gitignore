@@ -1,0 +1,18 @@
+# Large reference clones (CI downloads XNU source itself)
+reference/
+
+# Extracted IPSW/kernelcache/DMG/cache artifacts (multi-GB)
+research/userland-rootfs/
+research/kc-*/
+*.dmg
+*.dmg.aea
+*.ipsw
+*.im4p
+*.bin
+
+# Downloaded tools (user installs locally)
+tools/ipsw-cli/
+
+# Build outputs
+__pycache__/
+*.pyc
