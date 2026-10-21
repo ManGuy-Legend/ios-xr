@@ -12,8 +12,8 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 +	 * SEP communication failed during kext start), panic here would
 +	 * be fatal. Instead, leave trust_cache_rt NULL -- all trust cache
 +	 * operations will return KERN_NOT_SUPPORTED, and the cs_flags
-+	 * fallback in ubc_cs_blob_add (patch 0003) handles binary
-+	 * validation without trust caches.
++	 * fallback in ubc_cs_blob_add handles binary validation without
++	 * trust caches.
 +	 */
 +	if (img4if == NULL || amfi == NULL) {
 +		trust_cache_rt = NULL;
@@ -27,7 +27,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
  	bool allow_second_static_cache = false;
  	bool allow_engineering_caches = false;
 
-@@ -691,6 +710,12 @@ check_trust_cache_runtime_for_uuid(
+@@ -697,6 +716,12 @@ check_trust_cache_runtime_for_uuid(
  		return KERN_INVALID_ARGUMENT;
  	}
 
@@ -40,7 +40,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
  #if CONFIG_SPTM
  	ret = txm_check_trust_cache_runtime_for_uuid(check_uuid);
  #elif PMAP_CS_PPL_MONITOR
-@@ -856,6 +881,13 @@ load_trust_cache_with_type(
+@@ -852,6 +877,13 @@ load_trust_cache_with_type(
  		return KERN_DENIED;
  	}
 
@@ -54,7 +54,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
  #if CONFIG_SPTM
  	ret = txm_load_trust_cache(
  		type,
-@@ -929,6 +961,12 @@ query_trust_cache(
+@@ -931,6 +963,12 @@ query_trust_cache(
  		return KERN_INVALID_ARGUMENT;
  	}
 
@@ -70,19 +70,15 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
 --- a/bsd/kern/ubc_subr.c
 +++ b/bsd/kern/ubc_subr.c
-@@ -4856,6 +4856,21 @@ ubc_cs_blob_add(
- 	}
- #endif
+@@ -4855,6 +4855,19 @@ ubc_cs_blob_add(
+ 	tmp_blob.csb_flags = cs_flags;
+ 	tmp_blob.csb_signer_type = signer_type;
 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	/*
 +	 * T8020 SEP fallback: without a functioning trust cache runtime,
-+	 * the AMFI MAC hook cannot mark binaries as platform binaries via
-+	 * the normal trust cache cdhash lookup path. Mark every properly
-+	 * signed binary on the root filesystem as CS_PLATFORM_BINARY so
-+	 * the iOS 26 userland can exec(). This is the same policy ios-sweet
-+	 * uses for Snapdragon, adapted for real Apple hardware where the
-+	 * binaries are genuinely Apple-signed (just not trust-cache-verified).
++	 * mark every properly signed binary on the root filesystem as
++	 * CS_PLATFORM_BINARY so the iOS 26 userland can exec().
 +	 */
 +	if ((tmp_blob.csb_flags & CS_VALID) && vnode_mount(vp) != NULL &&
 +	    (vfs_flags(vnode_mount(vp)) & MNT_ROOTFS)) {
@@ -91,5 +87,5 @@ diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
 +#endif
 +
  	if (tmp_blob.csb_flags & CS_PLATFORM_BINARY) {
- 		if (cs_debug > 1) {
- 			printf("%.200s loaded from a platform binary: "
+ 		tmp_blob.csb_platform_binary = 1;
+ 		tmp_blob.csb_platform_path = !!(tmp_blob.csb_flags & CS_PLATFORM_PATH);

@@ -15,7 +15,7 @@ index 3468fbf..0140ae6 100644
  COMPONENT	= $(if $(word 2,$(subst /, ,$(RELATIVE_SOURCE_PATH))),$(word 2,$(subst /, ,$(RELATIVE_SOURCE_PATH))),$(firstword $(subst /, ,$(RELATIVE_SOURCE_PATH))))
  COMPONENT_IMPORT_LIST = $(filter-out $(COMPONENT),$(COMPONENT_LIST))
  
-+MACHINE_FLAGS_ARM64_T8020 = -DARM64_BOARD_CONFIG_T8020			-mcpu=apple-a12
++MACHINE_FLAGS_ARM64_T8020 = -DARM64_BOARD_CONFIG_T8020			-mcpu=apple-a14
  MACHINE_FLAGS_ARM64_T8101 = -DARM64_BOARD_CONFIG_T8101			-mcpu=apple-a14
  MACHINE_FLAGS_ARM64_T8103 = -DARM64_BOARD_CONFIG_T8103                  -mcpu=apple-a14
  MACHINE_FLAGS_ARM64_T6000 = -DARM64_BOARD_CONFIG_T6000			-mcpu=apple-a14
@@ -24,7 +24,7 @@ new file mode 100644
 index 0000000..968e419
 --- /dev/null
 +++ b/pexpert/pexpert/arm64/H12.h
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,97 @@
 +/*
 + * Copyright (c) 2019 Apple Inc. All rights reserved.
 + *
@@ -103,12 +103,16 @@ index 0000000..968e419
 +#define __ARM_16K_PG__                          1 /* iOS has used 16K pages since A11; A12 continues this */
 +#define __ARM_GLOBAL_SLEEP_BIT__                1
 +
-+/* Perf-counter topology (CPMU_PMC_COUNT, UNCORE_*, UPMU_*) intentionally
-+ * NOT copied from H13.h -- those are Firestorm/Icestorm-specific counter
-+ * counts, not Vortex/Tempest's. No public source for A12's actual PMU
-+ * topology found. Omitting these entirely disables perf-counter-dependent
-+ * kernel features for this config rather than silently using wrong counts;
-+ * safe default, same reasoning as the power-management flags above. */
++#define UNCORE_NCTRS                         16
++#define CORE_NCTRS                           10
++
++#define CPMU_PMC_COUNT                       10
++
++#define UPMU_VERSION                         2
++#define UPMU_PMC_COUNT                       16
++#define UPMU_PER_CLUSTER                     1
++#define UPMU_AF_LATENCY                      1
++#define UPMU_META_EVENTS                     1
 +
 +#define ARM_PARAMETERIZED_PMAP               1
 +#define __ARM_RANGE_TLBI__                   1
