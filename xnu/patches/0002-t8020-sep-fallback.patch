@@ -26,11 +26,11 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 +#endif
  	bool allow_second_static_cache = false;
  	bool allow_engineering_caches = false;
-
+ 
 @@ -697,6 +716,12 @@ check_trust_cache_runtime_for_uuid(
  		return KERN_INVALID_ARGUMENT;
  	}
-
+ 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	if (trust_cache_rt == NULL) {
 +		return KERN_NOT_FOUND;
@@ -43,7 +43,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 @@ -852,6 +877,13 @@ load_trust_cache_with_type(
  		return KERN_DENIED;
  	}
-
+ 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	if (trust_cache_rt == NULL) {
 +		printf("T8020: trust cache load skipped (SEP fallback)\n");
@@ -57,7 +57,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 @@ -931,6 +963,12 @@ query_trust_cache(
  		return KERN_INVALID_ARGUMENT;
  	}
-
+ 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	if (trust_cache_rt == NULL) {
 +		return KERN_NOT_FOUND;
@@ -73,7 +73,7 @@ diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
 @@ -4855,6 +4855,19 @@ ubc_cs_blob_add(
  	tmp_blob.csb_flags = cs_flags;
  	tmp_blob.csb_signer_type = signer_type;
-
+ 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	/*
 +	 * T8020 SEP fallback: without a functioning trust cache runtime,
