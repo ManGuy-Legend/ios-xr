@@ -118,6 +118,18 @@ index 0000000..968e419
 +#include <pexpert/arm64/apple_arm64_common.h>
 +
 +#endif /* !_PEXPERT_ARM64_H12_H */
+diff --git a/pexpert/pexpert/arm64/Makefile b/pexpert/pexpert/arm64/Makefile
+index 1a2b3c4..5d6e7f8 100644
+--- a/pexpert/pexpert/arm64/Makefile
++++ b/pexpert/pexpert/arm64/Makefile
+@@ -16,6 +16,7 @@
+ 	vhe_disable.h \
+ 	board_config.h \
+ 	boot.h \
++	H12.h \
+ 	H13.h \
+ 	H14.h \
+ 	H15.h \
 diff --git a/pexpert/pexpert/arm64/board_config.h b/pexpert/pexpert/arm64/board_config.h
 index 216a18b..18da40e 100644
 --- a/pexpert/pexpert/arm64/board_config.h
