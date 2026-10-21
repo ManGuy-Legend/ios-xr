@@ -47,9 +47,12 @@ jobs:
       - name: Fetch darwin-xnu-build
         run: |
           git clone --depth 1 "$DXB_REPO" dxb
-          # Copy our patches into dxb's patches dir
-          cp xnu/patches/*.patch dxb/patches/
-          ls -la dxb/patches/
+          # Copy our patches into dxb's version-specific patches dir
+          # (darwin-xnu-build 15.0+ reads from patches/$VERSION/, not top-level)
+          PATCH_DIR="dxb/patches/${MACOS_VERSION}"
+          mkdir -p "$PATCH_DIR"
+          cp xnu/patches/*.patch "$PATCH_DIR/"
+          ls -la "$PATCH_DIR/"
 
       - name: Configure for T8020 (arm64e / A12)
         run: |
