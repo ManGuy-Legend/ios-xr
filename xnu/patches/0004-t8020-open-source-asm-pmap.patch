@@ -134,7 +134,7 @@ diff --git a/osfmk/arm64/ppl/sart.h b/osfmk/arm64/ppl/sart.h
 new file mode 100644
 --- /dev/null
 +++ b/osfmk/arm64/ppl/sart.h
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,14 @@
 +/*
 + * T8020 stub: Apple's SART (System Address Region Table -- NVMe/ANS
 + * IOMMU) header is not in the open source drop. Bootstrap is a no-op;
@@ -153,7 +153,7 @@ diff --git a/osfmk/arm64/ppl/uat.h b/osfmk/arm64/ppl/uat.h
 new file mode 100644
 --- /dev/null
 +++ b/osfmk/arm64/ppl/uat.h
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,14 @@
 +/*
 + * T8020 stub: Apple's UAT (Unified Address Translator -- GPU page
 + * table manager) header is not in the open source drop. Bootstrap

@@ -1,0 +1,51 @@
+T8020: add APRR support, disable PMAP code signing, stub IOMMU helper
+
+A12 (T8020) was the first Apple chip with APRR (Access Permission
+Remap Registers), the hardware feature that PPL's XPRR permission
+system requires.  Without __APRR_SUPPORTED__, all XPRR constants,
+APRR register names, and PPL lockdown functions are undefined --
+causing ~30 compilation errors across pmap, locore, and start.s.
+
+Disable PMAP_CS (PPL-based Code Signing) because the full PMAP_CS
+infrastructure (pmap_cs_blob, pmap_cs_main, trust-cache dispatch
+indices, and the code-signing acceleration buffer) ships only in
+Apple's closed per-SoC library.  Combined with the SEP fallback in
+patch 0002, code signing validation falls back to the non-PPL path.
+
+Also add a macro stub for ptep_get_iommu() -- the closed-source
+DART IOMMU helper that returns the IOMMU device owning a PTE.
+The stub returns the raw PTE pointer, which is sufficient for the
+diagnostic panic messages that reference it.
+
+diff --git a/pexpert/pexpert/arm64/H12.h b/pexpert/pexpert/arm64/H12.h
+--- a/pexpert/pexpert/arm64/H12.h
++++ b/pexpert/pexpert/arm64/H12.h
+@@ -44,6 +44,15 @@
+ #define CPU_HAS_APPLE_PAC        1 /* A12 is the FIRST Apple PAC/arm64e chip -- public, well-documented fact */
+ #define __ARM_PAN_AVAILABLE__    1 /* ARMv8.1 PAN, below A12's baseline */
+
++#define __APRR_SUPPORTED__       1 /* A12 introduced APRR -- the permission
++                                    * remapping that PPL (XNU_MONITOR) needs.
++                                    * Without this, XPRR constants and APRR
++                                    * system register names are undefined. */
++
++/* Stub: ptep_get_iommu is in Apple's closed DART IOMMU library.
++ * Returns the raw PTE pointer -- sufficient for diagnostic messages. */
++#define ptep_get_iommu(pte_p) ((void *)(pte_p))
++
+ #define HAS_KTRR                 1 /* NOT HAS_CTRR -- CTRR is H13+ (A14-and-newer) only; KTRR is the
+                                      * explicit predecessor fallback still wired in current XNU's
+                                      * apple_arm64_common.h (HAS_CTRR3 -> HAS_CTRR -> HAS_KTRR -> MONITOR),
+diff --git a/pexpert/pexpert/arm64/board_config.h b/pexpert/pexpert/arm64/board_config.h
+--- a/pexpert/pexpert/arm64/board_config.h
++++ b/pexpert/pexpert/arm64/board_config.h
+@@ -114,9 +114,7 @@
+ #define MAX_L2_CLINE                   7
+ #define MAX_CPUS                       6   /* 2 Vortex (perf) + 4 Tempest (eff) -- confirmed against XR's real ADT, see ../../research/devicetree-xr.md */
+ #define MAX_CPU_CLUSTERS               2
+
+-#define PMAP_CS                        1
+-#define PMAP_CS_ENABLE                 1
+ #define XNU_MONITOR                    1 /* Secure pmap runtime */
+ #endif  /* ARM64_BOARD_CONFIG_T8020 */
+

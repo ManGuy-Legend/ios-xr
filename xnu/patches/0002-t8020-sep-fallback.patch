@@ -70,7 +70,7 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
 --- a/bsd/kern/ubc_subr.c
 +++ b/bsd/kern/ubc_subr.c
-@@ -4855,6 +4855,19 @@ ubc_cs_blob_add(
+@@ -4855,6 +4855,18 @@ ubc_cs_blob_add(
  	tmp_blob.csb_flags = cs_flags;
  	tmp_blob.csb_signer_type = signer_type;
  

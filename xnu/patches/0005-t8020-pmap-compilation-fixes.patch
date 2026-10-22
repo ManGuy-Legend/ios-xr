@@ -17,7 +17,7 @@ pmap_misc.c compile from open source for the first time. Two fixes:
 diff --git a/osfmk/arm/pmap/pmap.c b/osfmk/arm/pmap/pmap.c
 --- a/osfmk/arm/pmap/pmap.c
 +++ b/osfmk/arm/pmap/pmap.c
-@@ -3500,14 +3500,14 @@
+@@ -3500,13 +3500,13 @@
  #ifdef PVH_FLAG_IOMMU
  		if (pvh_ptep_is_iommu(pte_p)) {
  #if XNU_MONITOR
