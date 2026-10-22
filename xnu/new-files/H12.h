@@ -74,18 +74,31 @@
 
 #define __ARM_AMP__                             1 /* matches HAS_CLUSTER above */
 #define __ARM_16K_PG__                          1 /* iOS has used 16K pages since A11; A12 continues this */
-#define __ARM_GLOBAL_SLEEP_BIT__                1
-#define __ARM_PAN_AVAILABLE__                   1
+#define NO_CPU_OVRD                             1 /* CPU_OVRD/ACC_OVRD are
+                                                     * Apple-internal sysreg
+                                                     * names the public
+                                                     * assembler does not know;
+                                                     * skip the deep sleep
+                                                     * register accesses. */
 
-/* Perf-counter topology (CPMU_PMC_COUNT, UNCORE_*, UPMU_*) intentionally
- * NOT copied from H13.h -- those are Firestorm/Icestorm-specific counter
- * counts, not Vortex/Tempest's. No public source for A12's actual PMU
- * topology found. Omitting these entirely disables perf-counter-dependent
- * kernel features for this config rather than silently using wrong counts;
- * safe default, same reasoning as the power-management flags above. */
+#define UNCORE_NCTRS                         16
+#define CORE_NCTRS                           10
+
+#define CPMU_PMC_COUNT                       10
+
+#define UPMU_VERSION                         2
+#define UPMU_PMC_COUNT                       16
+#define UPMU_PER_CLUSTER                     1
+#define UPMU_AF_LATENCY                      1
+#define UPMU_META_EVENTS                     1
 
 #define ARM_PARAMETERIZED_PMAP               1
 #define __ARM_RANGE_TLBI__                   1
+
+/* ptep_get_iommu() is part of Apple's closed DART IOMMU support. It is only
+ * used to decode a PTE in two diagnostic panic() strings, so report the raw
+ * PTE pointer instead of a device. */
+#define ptep_get_iommu(pte_p) ((void *)(pte_p))
 
 #include <pexpert/arm64/vhe_disable.h>
 

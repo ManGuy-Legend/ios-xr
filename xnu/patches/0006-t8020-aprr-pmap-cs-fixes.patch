@@ -1,51 +1,135 @@
-T8020: add APRR support, disable PMAP code signing, stub IOMMU helper
+T8020: build without PPL/XNU_MONITOR, avoid CPU_OVRD deep-sleep registers
 
-A12 (T8020) was the first Apple chip with APRR (Access Permission
-Remap Registers), the hardware feature that PPL's XPRR permission
-system requires.  Without __APRR_SUPPORTED__, all XPRR constants,
-APRR register names, and PPL lockdown functions are undefined --
-causing ~30 compilation errors across pmap, locore, and start.s.
+The PPL monitor (pmap_ppl_*, pmap_cs_* lockdown, XPRR/APRR permission tables)
+only ships in Apple's closed per-SoC library, so an iPhone SoC build cannot
+link it. Dropping PMAP_CS alone is not enough: board_config.h must also drop
+XNU_MONITOR, which is what selects PMAP_CS_PPL_MONITOR and every closed
+monitor call path (and, with PMAP_CS gone, trips the build check in
+pmap_cs.h).
 
-Disable PMAP_CS (PPL-based Code Signing) because the full PMAP_CS
-infrastructure (pmap_cs_blob, pmap_cs_main, trust-cache dispatch
-indices, and the code-signing acceleration buffer) ships only in
-Apple's closed per-SoC library.  Combined with the SEP fallback in
-patch 0002, code signing validation falls back to the non-PPL path.
+With the monitor disabled:
+ - pmap_cs_lockdown_pages()/unlockdown_pages() must not call the PPL-only
+   pmap_ppl_* helpers from their !XNU_MONITOR branches.
+ - pmap_phys_write_disable() needs a forward declaration; its definition
+   follows its first caller in pmap.c.
+ - arm_vm_init() still calls ml_enable_monitor(); provide a no-op, because
+   the real definition is in the closed library.
 
-Also add a macro stub for ptep_get_iommu() -- the closed-source
-DART IOMMU helper that returns the IOMMU device owning a PTE.
-The stub returns the raw PTE pointer, which is sufficient for the
-diagnostic panic messages that reference it.
+H12.h also moves off the deep-sleep path: it no longer defines
+__ARM_GLOBAL_SLEEP_BIT__ and sets NO_CPU_OVRD, because
+machine_routines_asm.s otherwise emits CPU_OVRD/ACC_OVRD register accesses
+whose names only Apple's internal assembler understands. ptep_get_iommu(),
+which is also closed-source, is replaced with a macro that reports the raw
+PTE pointer for the two diagnostic panic() strings that use it.
 
+diff --git a/osfmk/arm/pmap/pmap.c b/osfmk/arm/pmap/pmap.c
+index 562c938..f9b81b3 100644
+--- a/osfmk/arm/pmap/pmap.c
++++ b/osfmk/arm/pmap/pmap.c
+@@ -6102,6 +6102,9 @@ pmap_construct_pte(
+ 	return pte;
+ }
+ 
++/* Defined further down; used by pmap_enter_options_internal(). */
++MARK_AS_PMAP_TEXT static void pmap_phys_write_disable(vm_address_t va);
++
+ MARK_AS_PMAP_TEXT kern_return_t
+ pmap_enter_options_internal(
+ 	pmap_t pmap,
+@@ -12188,7 +12191,10 @@ pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
+ #if XNU_MONITOR
+ 	pmap_ppl_lockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
+ #else
+-	pmap_ppl_lockdown_pages(kva, size, 0, ppl_writable);
++	/* No PPL: pmap_ppl_lockdown_pages() only exists in the monitor build. */
++	(void)kva;
++	(void)size;
++	(void)ppl_writable;
+ #endif
+ }
+ 
+@@ -12198,7 +12204,10 @@ pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
+ #if XNU_MONITOR
+ 	pmap_ppl_unlockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
+ #else
+-	pmap_ppl_unlockdown_pages(kva, size, 0, ppl_writable);
++	/* No PPL: nothing was locked down, so there is nothing to release. */
++	(void)kva;
++	(void)size;
++	(void)ppl_writable;
+ #endif
+ }
+ 
+diff --git a/osfmk/arm64/machine_routines.c b/osfmk/arm64/machine_routines.c
+index d0abdec..bdda853 100644
+--- a/osfmk/arm64/machine_routines.c
++++ b/osfmk/arm64/machine_routines.c
+@@ -2487,6 +2487,18 @@ ml_get_decrementer(void)
+ 	return dec;
+ }
+ 
++#if defined(ARM64_BOARD_CONFIG_T8020)
++/*
++ * arm_vm_init() calls this unconditionally, but its implementation only ships
++ * in Apple's closed per-SoC monitor support. A T8020 build has no PPL, so
++ * there is no monitor to enter.
++ */
++void
++ml_enable_monitor(void)
++{
++}
++#endif /* ARM64_BOARD_CONFIG_T8020 */
++
+ boolean_t
+ ml_get_timer_pending(void)
+ {
 diff --git a/pexpert/pexpert/arm64/H12.h b/pexpert/pexpert/arm64/H12.h
+index e509a28..e7697e9 100644
 --- a/pexpert/pexpert/arm64/H12.h
 +++ b/pexpert/pexpert/arm64/H12.h
-@@ -44,6 +44,15 @@
- #define CPU_HAS_APPLE_PAC        1 /* A12 is the FIRST Apple PAC/arm64e chip -- public, well-documented fact */
- #define __ARM_PAN_AVAILABLE__    1 /* ARMv8.1 PAN, below A12's baseline */
-
-+#define __APRR_SUPPORTED__       1 /* A12 introduced APRR -- the permission
-+                                    * remapping that PPL (XNU_MONITOR) needs.
-+                                    * Without this, XPRR constants and APRR
-+                                    * system register names are undefined. */
-+
-+/* Stub: ptep_get_iommu is in Apple's closed DART IOMMU library.
-+ * Returns the raw PTE pointer -- sufficient for diagnostic messages. */
+@@ -74,7 +74,12 @@
+ 
+ #define __ARM_AMP__                             1 /* matches HAS_CLUSTER above */
+ #define __ARM_16K_PG__                          1 /* iOS has used 16K pages since A11; A12 continues this */
+-#define __ARM_GLOBAL_SLEEP_BIT__                1
++#define NO_CPU_OVRD                             1 /* CPU_OVRD/ACC_OVRD are
++                                                     * Apple-internal sysreg
++                                                     * names the public
++                                                     * assembler does not know;
++                                                     * skip the deep sleep
++                                                     * register accesses. */
+ 
+ #define UNCORE_NCTRS                         16
+ #define CORE_NCTRS                           10
+@@ -90,6 +95,11 @@
+ #define ARM_PARAMETERIZED_PMAP               1
+ #define __ARM_RANGE_TLBI__                   1
+ 
++/* ptep_get_iommu() is part of Apple's closed DART IOMMU support. It is only
++ * used to decode a PTE in two diagnostic panic() strings, so report the raw
++ * PTE pointer instead of a device. */
 +#define ptep_get_iommu(pte_p) ((void *)(pte_p))
 +
- #define HAS_KTRR                 1 /* NOT HAS_CTRR -- CTRR is H13+ (A14-and-newer) only; KTRR is the
-                                      * explicit predecessor fallback still wired in current XNU's
-                                      * apple_arm64_common.h (HAS_CTRR3 -> HAS_CTRR -> HAS_KTRR -> MONITOR),
+ #include <pexpert/arm64/vhe_disable.h>
+ 
+ #include <pexpert/arm64/apple_arm64_common.h>
 diff --git a/pexpert/pexpert/arm64/board_config.h b/pexpert/pexpert/arm64/board_config.h
+index 18da40e..1b85547 100644
 --- a/pexpert/pexpert/arm64/board_config.h
 +++ b/pexpert/pexpert/arm64/board_config.h
-@@ -114,9 +114,7 @@
- #define MAX_L2_CLINE                   7
+@@ -115,9 +115,12 @@
  #define MAX_CPUS                       6   /* 2 Vortex (perf) + 4 Tempest (eff) -- confirmed against XR's real ADT, see ../../research/devicetree-xr.md */
  #define MAX_CPU_CLUSTERS               2
-
+ 
 -#define PMAP_CS                        1
 -#define PMAP_CS_ENABLE                 1
- #define XNU_MONITOR                    1 /* Secure pmap runtime */
+-#define XNU_MONITOR                    1 /* Secure pmap runtime */
++/*
++ * T8020 bring-up builds without PPL/XNU_MONITOR. The PPL monitor itself
++ * (pmap_ppl_*, pmap_cs_* lockdown, XPRR/APRR permission tables) is not in
++ * Apple's public XNU drop, so none of it can be linked for an iPhone SoC.
++ * Without XNU_MONITOR the pmap runs the stock kernel-only path.
++ */
  #endif  /* ARM64_BOARD_CONFIG_T8020 */
-
+ 
+ 

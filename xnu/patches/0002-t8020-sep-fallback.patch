@@ -1,21 +1,45 @@
+T8020: SEP fallback for the non-PPL trust cache runtime
+
+A T8020 build has no PPL, so the kernel-owned trust cache runtime is used
+instead of the PPL-managed one. That variant panics if Image4 or AMFI failed
+to register, which is exactly the case when the XR's iOS 18-era SEP cannot be
+driven by the iOS 26 AP-side kexts. Detect the missing interfaces, leave the
+runtime unavailable, and make every load/query entry point fail cleanly.
+
+Properly signed root-filesystem binaries are marked CS_PLATFORM_BINARY in
+ubc_cs_blob_add() so the iOS 26 userland can exec() without a trust cache.
+
 diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
+index 032de9c..2853a09 100644
 --- a/bsd/kern/kern_trustcache.c
 +++ b/bsd/kern/kern_trustcache.c
-@@ -286,6 +286,25 @@ SECURITY_READ_ONLY_LATE(TrustCacheMutableRuntime_t*) trust_cache_mut_rt = &ppl_t
- void
- trust_cache_runtime_init(void)
- {
+@@ -47,6 +47,20 @@
+ static bool boot_os_tc_loaded = false;
+ static bool boot_app_tc_loaded = false;
+ 
 +#if defined(ARM64_BOARD_CONFIG_T8020)
-+	/*
-+	 * T8020 SEP fallback: XR's SEP runs iOS 18-era firmware. If the
-+	 * Image4 or AMFI kext fails to register its interface (because
-+	 * SEP communication failed during kext start), panic here would
-+	 * be fatal. Instead, leave trust_cache_rt NULL -- all trust cache
-+	 * operations will return KERN_NOT_SUPPORTED, and the cs_flags
-+	 * fallback in ubc_cs_blob_add handles binary validation without
-+	 * trust caches.
-+	 */
-+	if (img4if == NULL || amfi == NULL) {
++/*
++ * T8020 SEP fallback: the XR's SEP only runs iOS 18-era firmware, so the
++ * iOS 26-era Image4/AMFI kexts may fail to register against it. Without those
++ * interfaces the trust cache runtime cannot be initialized, and the stock
++ * code panics. Treat the runtime as unavailable instead: every load/query
++ * then fails cleanly (KERN_NOT_SUPPORTED/KERN_NOT_FOUND) and the code
++ * signing fallback in ubc_cs_blob_add() handles validation.
++ */
++#define T8020_TRUST_CACHE_UNAVAILABLE (img4if == NULL || amfi == NULL)
++#else
++#define T8020_TRUST_CACHE_UNAVAILABLE 0
++#endif
++
+ #if CONFIG_SPTM
+ /*
+  * We have the TrustedExecutionMonitor environment available. All of our artifacts
+@@ -468,6 +482,17 @@ trust_cache_runtime_init(void)
+ 	allow_legacy_caches = true;
+ #endif
+ 
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
 +		trust_cache_rt = NULL;
 +		trust_cache_mut_rt = NULL;
 +		printf("T8020: trust cache runtime unavailable "
@@ -24,15 +48,16 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
 +		return;
 +	}
 +#endif
- 	bool allow_second_static_cache = false;
- 	bool allow_engineering_caches = false;
- 
-@@ -697,6 +716,12 @@ check_trust_cache_runtime_for_uuid(
++
+ 	/* Image4 interface needs to be available */
+ 	if (img4if == NULL) {
+ 		panic("image4 interface not available");
+@@ -698,6 +723,12 @@ check_trust_cache_runtime_for_uuid(
  		return KERN_INVALID_ARGUMENT;
  	}
  
 +#if defined(ARM64_BOARD_CONFIG_T8020)
-+	if (trust_cache_rt == NULL) {
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
 +		return KERN_NOT_FOUND;
 +	}
 +#endif
@@ -40,26 +65,40 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
  #if CONFIG_SPTM
  	ret = txm_check_trust_cache_runtime_for_uuid(check_uuid);
  #elif PMAP_CS_PPL_MONITOR
-@@ -852,6 +877,13 @@ load_trust_cache_with_type(
- 		return KERN_DENIED;
+@@ -784,6 +815,13 @@ load_trust_cache_with_type(
+ 		}
  	}
  
 +#if defined(ARM64_BOARD_CONFIG_T8020)
-+	if (trust_cache_rt == NULL) {
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
 +		printf("T8020: trust cache load skipped (SEP fallback)\n");
 +		return KERN_NOT_SUPPORTED;
 +	}
 +#endif
 +
+ 	/*
+ 	 * If we don't have an external manifest provided, we expect the img4_object to have
+ 	 * the manifest embedded. In this case, we need to extract the different artifacts
+@@ -901,6 +939,13 @@ load_legacy_trust_cache(
+ 		panic("overflow on the module: %p | %lu", module_data, module_size);
+ 	}
+ 
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
++		printf("T8020: legacy trust cache load skipped (SEP fallback)\n");
++		return KERN_NOT_SUPPORTED;
++	}
++#endif
++
  #if CONFIG_SPTM
- 	ret = txm_load_trust_cache(
- 		type,
-@@ -931,6 +963,12 @@ query_trust_cache(
+ 	ret = txm_load_legacy_trust_cache(module_data, module_size);
+ #elif PMAP_CS_PPL_MONITOR
+@@ -931,6 +976,12 @@ query_trust_cache(
  		return KERN_INVALID_ARGUMENT;
  	}
  
 +#if defined(ARM64_BOARD_CONFIG_T8020)
-+	if (trust_cache_rt == NULL) {
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
 +		return KERN_NOT_FOUND;
 +	}
 +#endif
@@ -67,7 +106,34 @@ diff --git a/bsd/kern/kern_trustcache.c b/bsd/kern/kern_trustcache.c
  #if CONFIG_SPTM
  	ret = txm_query_trust_cache(query_type, cdhash, query_token);
  #elif PMAP_CS_PPL_MONITOR
+@@ -1008,6 +1059,12 @@ load_static_trust_cache(void)
+ 		return;
+ 	}
+ 
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
++		return;
++	}
++#endif
++
+ 	if (amfi->TrustCache.version < 1) {
+ 		/* AMFI change hasn't landed in the build */
+ 		printf("unable to load static trust cache: interface not supported\n");
+@@ -1141,6 +1198,12 @@ static_trust_cache_capabilities(
+ 	*capabilities0_ret = kTCCapabilityNone;
+ 	*capabilities1_ret = kTCCapabilityNone;
+ 
++#if defined(ARM64_BOARD_CONFIG_T8020)
++	if (T8020_TRUST_CACHE_UNAVAILABLE) {
++		return KERN_NOT_SUPPORTED;
++	}
++#endif
++
+ 	/* Ensure static trust caches have been initialized */
+ 	if (trust_cache_static_init == false) {
+ 		panic("attempted to query static trust cache capabilities without init");
 diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
+index 957b4c8..7c287fa 100644
 --- a/bsd/kern/ubc_subr.c
 +++ b/bsd/kern/ubc_subr.c
 @@ -4855,6 +4855,18 @@ ubc_cs_blob_add(
@@ -76,9 +142,9 @@ diff --git a/bsd/kern/ubc_subr.c b/bsd/kern/ubc_subr.c
  
 +#if defined(ARM64_BOARD_CONFIG_T8020)
 +	/*
-+	 * T8020 SEP fallback: without a functioning trust cache runtime,
-+	 * mark every properly signed binary on the root filesystem as
-+	 * CS_PLATFORM_BINARY so the iOS 26 userland can exec().
++	 * T8020 SEP fallback: without a functioning trust cache runtime, mark
++	 * every properly signed binary on the root filesystem as a platform
++	 * binary so the iOS 26 userland can exec().
 +	 */
 +	if ((tmp_blob.csb_flags & CS_VALID) && vnode_mount(vp) != NULL &&
 +	    (vfs_flags(vnode_mount(vp)) & MNT_ROOTFS)) {
